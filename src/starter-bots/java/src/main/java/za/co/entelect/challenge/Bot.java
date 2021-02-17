@@ -125,6 +125,57 @@ public class Bot {
         return directionLines;
     }
 
+    private List<Worm> cariEnemy(MyWorm wormkita, int range){
+        List<Worm> daftarmusuh = new ArrayList<>();
+        for (Direction direction : Direction.values()){
+            for (int directionMultiple = 1; directionMultiple <= range; directionMultiple++){
+                int coordinateX = wormkita.position.x + (directionMultiple*direction.x);
+                int coordinateY = wormkita.position.y + (directionMultiple * direction.y);
+                for (Worm lawan : opponent.worms){
+                    if (coordinateX == lawan.position.x && coordinateY == lawan.position.y){
+                        daftarmusuh.add(lawan);
+                    }
+                }
+            }
+        }
+        return daftarmusuh;
+    }
+
+    private boolean kenaBananaSendiri(Position posisitembak){
+        boolean tertembak = false;
+        for (Direction direction : Direction.values()){
+            int directionMultiplier = 1;
+            do{
+                int coordinateX = posisitembak.x + (directionMultiplier*direction.x);
+                int coordinateY = posisitembak.y + (directionMultiplier*direction.y);
+                for (MyWorm cek: player.worms){
+                    if (coordinateX == cek.position.x && coordinateY == cek.position.y){
+                        tertembak = true;
+                        break;
+                    }
+                }
+                directionMultiplier++;
+            }while (directionMultiplier <= 2 && !tertembak);
+            if (tertembak){
+                break;
+            }
+        }
+        return tertembak;
+    }
+
+    private boolean kenaSnowballSendiri(Position posisitembak){
+        for (Direction direction : Direction.values()){
+            int coordinateX = posisitembak.x + direction.x;
+            int coordinateY = posisitembak.y + direction.y;
+            for (MyWorm cek: player.worms){
+                if (coordinateX == cek.position.x && coordinateY == cek.position.y){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     private boolean tertembakKawan(MyWorm wormkita, Direction direction, Worm enemyWorm){
         boolean tertembak = false;
         int directionmultiplier = 1;
@@ -136,6 +187,7 @@ public class Bot {
             for (MyWorm cek: player.worms){
                 if (coordinateX == cek.position.x && coordinateY == cek.position.y){
                     tertembak = true;
+                    break;
                 }
             }
             directionmultiplier++;
@@ -143,10 +195,19 @@ public class Bot {
         return tertembak;
     }
 
+    private MyWorm cariRole(int id){
+        for (MyWorm worm : player.worms){
+            if (worm.id == id){
+                return worm;
+            }
+        }
+        return null;
+    }
+
     public Command run() {
         //mencari adakah yg bisa melakukan bananabombs
         for(MyWorm wormkita : player.worms) {
-            boolean AdaKawan;
+            /*
             AdaKawan = false;
             if (wormkita.id == 2) {
                 for(MyWorm cek : player.worms) {
@@ -154,23 +215,43 @@ public class Bot {
                         AdaKawan = true;
                     }
                 }
-
-                Worm Bananaenemy = getFirstWormInRange2(wormkita.bananaBombs.range, wormkita);
-                if (Bananaenemy != null && canBananaBom(wormkita, Bananaenemy) && !AdaKawan) {
-                    Position position = Bananaenemy.position;
-                    if (currentWorm.id != wormkita.id && player.remainingWormSelections > 0) {
-                        String perintah = String.format("banana %d %d", position.x, position.y);
-                        return new SelectCommand(2, perintah);
-                    } else {
-                        return new BananaBombsCommand(position);
-                    }
+            */
+            Worm Bananaenemy = getFirstWormInRange2(wormkita.bananaBombs.range, wormkita);
+            if (Bananaenemy != null && canBananaBom(wormkita, Bananaenemy) && !kenaBananaSendiri(Bananaenemy.position)) {
+                Position position = Bananaenemy.position;
+                if (currentWorm.id != wormkita.id && player.remainingWormSelections > 0) {
+                    String perintah = String.format("banana %d %d", position.x, position.y);
+                    return new SelectCommand(2, perintah);
+                } else {
+                    return new BananaBombsCommand(position);
                 }
             }
         }
+        /*
+        MyWorm penyerang = cariRole(2);
+        List<Worm> musuh = cariEnemy(penyerang, penyerang.bananaBombs.range);
+        if (musuh != null){
+            boolean ketemu = false;
+            int i = 0;
+            while (!ketemu && i < musuh.size()){
+                Worm ini = musuh.get(i);
+                if (canBananaBom(penyerang,ini) && !kenaBananaSendiri(ini.position)){
+                    ketemu = true;
+                }
+                else{
+                    i++;
+                }
+            }
+            if (ketemu){
+                return new BananaBombsCommand(penyerang.position);
+            }
+        }
+        */
+
 
         //mencari adakah yg bisa melakukan snowball
         for(MyWorm wormkita : player.worms) {
-            boolean AdaKawan;
+           /*  boolean AdaKawan;
             AdaKawan = false;
             if (wormkita.id == 3) {
                 for(MyWorm cek : player.worms) {
@@ -178,16 +259,15 @@ public class Bot {
                         AdaKawan = true;
                     }
                 }
-
-                Worm snowEnemy = getFirstWormInRange2(wormkita.bananaBombs.range, wormkita);
-                if (snowEnemy != null && canSnowBall(wormkita, snowEnemy) && !AdaKawan) {
-                    Position position = snowEnemy.position;
-                    if (currentWorm.id != wormkita.id && player.remainingWormSelections > 0) {
-                        String perintah = String.format("snowball %d %d", position.x, position.y);
-                        return new SelectCommand(3, perintah);
-                    } else {
-                        return new SnowBallsCommand(position);
-                    }
+            */
+            Worm snowEnemy = getFirstWormInRange2(wormkita.bananaBombs.range, wormkita);
+            if (snowEnemy != null && canSnowBall(wormkita, snowEnemy) && !kenaSnowballSendiri(snowEnemy.position)) {
+                Position position = snowEnemy.position;
+                if (currentWorm.id != wormkita.id && player.remainingWormSelections > 0) {
+                    String perintah = String.format("snowball %d %d", position.x, position.y);
+                    return new SelectCommand(3, perintah);
+                } else {
+                    return new SnowBallsCommand(position);
                 }
             }
         }
@@ -225,9 +305,10 @@ public class Bot {
         }
         //move mendekati musuh
         Direction moveDirection = getMovingDirection(currentWorm.position);
-        if(moveDirection != null) {
+        /*if(moveDirection != null) {
             return new MoveCommand(currentWorm.position.x + moveDirection.x, currentWorm.position.y + moveDirection.y);
-        }
+        }*/
+        return new MoveCommand(currentWorm.position.x + moveDirection.x, currentWorm.position.y + moveDirection.y);
 
         /*
         List<Cell> surroundingBlocks = getSurroundingCells(currentWorm.position.x, currentWorm.position.y);
@@ -241,7 +322,7 @@ public class Bot {
         }
          */
 
-        return new DoNothingCommand();
+        //return new DoNothingCommand();
 
     }
 
