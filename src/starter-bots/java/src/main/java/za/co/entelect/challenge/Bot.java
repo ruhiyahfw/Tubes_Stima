@@ -205,28 +205,17 @@ public class Bot {
     }
 
     public Command run() {
-        //mencari adakah yg bisa melakukan bananabombs
-        for(MyWorm wormkita : player.worms) {
-            /*
-            AdaKawan = false;
-            if (wormkita.id == 2) {
-                for(MyWorm cek : player.worms) {
-                    if (cek.id != wormkita.id && canBananaBom(wormkita, cek)) {
-                        AdaKawan = true;
-                    }
-                }
-            */
-            Worm Bananaenemy = getFirstWormInRange2(wormkita.bananaBombs.range, wormkita);
-            if (Bananaenemy != null && canBananaBom(wormkita, Bananaenemy) && !kenaBananaSendiri(Bananaenemy.position)) {
-                Position position = Bananaenemy.position;
-                if (currentWorm.id != wormkita.id && player.remainingWormSelections > 0) {
-                    String perintah = String.format("banana %d %d", position.x, position.y);
-                    return new SelectCommand(2, perintah);
-                } else {
-                    return new BananaBombsCommand(position);
-                }
+        Worm Bananaenemy = getFirstWormInRange2(player.worms[1].bananaBombs.range, player.worms[1]);
+        if (Bananaenemy != null && canBananaBom(player.worms[1], Bananaenemy) && !kenaBananaSendiri(Bananaenemy.position)) {
+            Position position = Bananaenemy.position;
+            if (player.remainingWormSelections > 0 && currentWorm.id != 2) {
+                String perintah = String.format("banana %d %d", position.x, position.y);
+                return new SelectCommand(2, perintah);
+            } else if (currentWorm.id == 2){
+                return new BananaBombsCommand(position);
             }
         }
+
         /*
         MyWorm penyerang = cariRole(2);
         List<Worm> musuh = cariEnemy(penyerang, penyerang.bananaBombs.range);
@@ -250,47 +239,37 @@ public class Bot {
 
 
         //mencari adakah yg bisa melakukan snowball
-        for(MyWorm wormkita : player.worms) {
-           /*  boolean AdaKawan;
-            AdaKawan = false;
-            if (wormkita.id == 3) {
-                for(MyWorm cek : player.worms) {
-                    if (cek.id != wormkita.id && canBananaBom(wormkita, cek)) {
-                        AdaKawan = true;
-                    }
-                }
-            */
-            Worm snowEnemy = getFirstWormInRange2(wormkita.bananaBombs.range, wormkita);
-            if (snowEnemy != null && canSnowBall(wormkita, snowEnemy) && !kenaSnowballSendiri(snowEnemy.position)) {
-                Position position = snowEnemy.position;
-                if (currentWorm.id != wormkita.id && player.remainingWormSelections > 0) {
-                    String perintah = String.format("snowball %d %d", position.x, position.y);
-                    return new SelectCommand(3, perintah);
-                } else {
-                    return new SnowBallsCommand(position);
-                }
+        Worm snowEnemy = getFirstWormInRange2(player.worms[2].snowballs.range, player.worms[2]);
+        if (snowEnemy != null && canSnowBall(player.worms[2], snowEnemy) && !kenaSnowballSendiri(snowEnemy.position)) {
+            Position position = snowEnemy.position;
+            if (player.remainingWormSelections > 0 && currentWorm.id != 3)  {
+                String perintah = String.format("snowball %d %d", position.x, position.y);
+                return new SelectCommand(3, perintah);
+            } else if (currentWorm.id == 3){
+                return new SnowBallsCommand(position);
             }
         }
 
         //mencari apakah ada yg bisa dishoot
-           // kita lihat apa bisa tanpa select dulu
-        MyWorm wormsebenar = getCurrentWorm(gameState);
-        Worm enemyWorm = getFirstWormInRange2(wormsebenar.weapon.range, wormsebenar);
+        // kita lihat apa bisa tanpa select dulu
+        Worm enemyWorm = getFirstWormInRange2(currentWorm.weapon.range, currentWorm);
         if (enemyWorm != null) {
-            Direction direction = resolveDirection(wormsebenar.position, enemyWorm.position);
-            if (!tertembakKawan(wormsebenar, direction, enemyWorm)) {
+            Direction direction = resolveDirection(currentWorm.position, enemyWorm.position);
+            if (!tertembakKawan(currentWorm, direction, enemyWorm)) {
                 return new ShootCommand(direction);
             }
         }
-          // kita lihat worm lain yang bisa menembak (pakai perintah select)
-        for(MyWorm wormkita : player.worms) {
-            if (wormkita != wormsebenar) {
-                enemyWorm = getFirstWormInRange2(wormkita.weapon.range, wormkita);
-                if (enemyWorm != null) {
-                    Direction direction = resolveDirection(wormsebenar.position, enemyWorm.position);
-                    if (!tertembakKawan(wormsebenar, direction, enemyWorm)) {
-                        String perintah = String.format("snowball %d %d", enemyWorm.position.x, enemyWorm.position.y);
-                        return new SelectCommand(wormkita.id, perintah);
+        // kita lihat worm lain yang bisa menembak (pakai perintah select)
+        if (player.remainingWormSelections > 0) {
+            for (MyWorm wormkita : player.worms) {
+                if (wormkita != currentWorm) {
+                    enemyWorm = getFirstWormInRange2(wormkita.weapon.range, wormkita);
+                    if (enemyWorm != null) {
+                        Direction direction = resolveDirection(currentWorm.position, enemyWorm.position);
+                        if (!tertembakKawan(currentWorm, direction, enemyWorm)) {
+                            String perintah = String.format("shoot %s", direction.name());
+                            return new SelectCommand(wormkita.id, perintah);
+                        }
                     }
                 }
             }

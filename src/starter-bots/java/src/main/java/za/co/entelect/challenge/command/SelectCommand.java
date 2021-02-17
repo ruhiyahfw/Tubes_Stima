@@ -5,7 +5,8 @@ public class SelectCommand implements Command {
     private String perintah;
 
     public SelectCommand(int id, String perintah) {
-        this.id = id;this.perintah = perintah;
+        this.id = id;
+        this.perintah = perintah;
     }
 
     @Override
