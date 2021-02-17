@@ -12,6 +12,9 @@ public class Worm {
     @SerializedName("position")
     public Position position;
 
+    @SerializedName("roundsUntilUnfrozen")
+    public int roundsUntilUnfrozen;
+
     @SerializedName("diggingRange")
     public int diggingRange;
 
