@@ -41,6 +41,7 @@ public class Bot {
 
     private boolean canSnowBall(MyWorm wormkita, Worm enemy) {
         return wormkita.snowballs.count > 0
+                && enemy.roundsUntilUnfrozen == 0
                 && wormkita.roundsUntilUnfrozen == 0
                 && euclideanDistance(wormkita.position.x, wormkita.position.y, enemy.position.x, enemy.position.y) <= wormkita.snowballs.range
                 && euclideanDistance(wormkita.position.x, wormkita.position.y, enemy.position.x, enemy.position.y) > wormkita.snowballs.freezeRadius * Math.sqrt(2);
@@ -125,6 +126,32 @@ public class Bot {
         return directionLines;
     }
 
+    private boolean tertembakPenghalang(MyWorm wormkita, Direction direction, Worm enemyWorm){
+        boolean tertembak = false;
+        int directionmultiplier = 1;
+        int coordinateX = wormkita.position.x;
+        int coordinateY = wormkita.position.y;
+        while (coordinateX != enemyWorm.position.x && coordinateY != enemyWorm.position.y && wormkita.weapon.range >= directionmultiplier && !tertembak){
+            coordinateX = wormkita.position.x + (directionmultiplier*direction.x);
+            coordinateY = wormkita.position.y + (directionmultiplier*direction.y);
+            for (MyWorm cek: player.worms){
+                if (coordinateX == cek.position.x && coordinateY == cek.position.y){
+                    tertembak = true;
+                    break;
+                }
+            }
+            Cell cell = gameState.map[coordinateX][coordinateY];
+            if (cell.type == CellType.DIRT || cell.type == CellType.DEEP_SPACE){
+                tertembak = true;
+            }
+            if (directionmultiplier == wormkita.weapon.range && (coordinateX != enemyWorm.position.x || coordinateY != enemyWorm.position.y)){
+                tertembak = true;  // sebenarnya ini out of range anggap aja tertembak :D
+            }
+            directionmultiplier++;
+        }
+        return tertembak;
+    }
+
     private List<Worm> cariEnemy(MyWorm wormkita, int range){
         List<Worm> daftarmusuh = new ArrayList<>();
         for (Direction direction : Direction.values()){
@@ -174,25 +201,6 @@ public class Bot {
             }
         }
         return false;
-    }
-
-    private boolean tertembakKawan(MyWorm wormkita, Direction direction, Worm enemyWorm){
-        boolean tertembak = false;
-        int directionmultiplier = 1;
-        int coordinateX = wormkita.position.x;
-        int coordinateY = wormkita.position.y;
-        while (coordinateX != enemyWorm.position.x && coordinateY != enemyWorm.position.y && !tertembak){
-            coordinateX = wormkita.position.x + (directionmultiplier*direction.x);
-            coordinateY = wormkita.position.y + (directionmultiplier*direction.y);
-            for (MyWorm cek: player.worms){
-                if (coordinateX == cek.position.x && coordinateY == cek.position.y){
-                    tertembak = true;
-                    break;
-                }
-            }
-            directionmultiplier++;
-        }
-        return tertembak;
     }
 
     private MyWorm cariRole(int id){
@@ -255,7 +263,7 @@ public class Bot {
         Worm enemyWorm = getFirstWormInRange2(currentWorm.weapon.range, currentWorm);
         if (enemyWorm != null) {
             Direction direction = resolveDirection(currentWorm.position, enemyWorm.position);
-            if (!tertembakKawan(currentWorm, direction, enemyWorm)) {
+            if (!tertembakPenghalang(currentWorm, direction, enemyWorm)) {
                 return new ShootCommand(direction);
             }
         }
@@ -266,7 +274,7 @@ public class Bot {
                     enemyWorm = getFirstWormInRange2(wormkita.weapon.range, wormkita);
                     if (enemyWorm != null) {
                         Direction direction = resolveDirection(currentWorm.position, enemyWorm.position);
-                        if (!tertembakKawan(currentWorm, direction, enemyWorm)) {
+                        if (!tertembakPenghalang(currentWorm, direction, enemyWorm)) {
                             String perintah = String.format("shoot %s", direction.name());
                             return new SelectCommand(wormkita.id, perintah);
                         }
