@@ -1,6 +1,6 @@
 package za.co.entelect.challenge;
 
-import javafx.geometry.Pos;
+//import javafx.geometry.Pos;
 import za.co.entelect.challenge.command.*;
 import za.co.entelect.challenge.entities.*;
 import za.co.entelect.challenge.enums.CellType;
@@ -125,7 +125,23 @@ public class Bot {
         return directionLines;
     }
 
-
+    private boolean tertembakKawan(MyWorm wormkita, Direction direction, Worm enemyWorm){
+        boolean tertembak = false;
+        int directionmultiplier = 1;
+        int coordinateX = wormkita.position.x;
+        int coordinateY = wormkita.position.y;
+        while (coordinateX != enemyWorm.position.x && coordinateY != enemyWorm.position.y && !tertembak){
+            coordinateX = wormkita.position.x + (directionmultiplier*direction.x);
+            coordinateY = wormkita.position.y + (directionmultiplier*direction.y);
+            for (MyWorm cek: player.worms){
+                if (coordinateX == cek.position.x && coordinateY == cek.position.y){
+                    tertembak = true;
+                }
+            }
+            directionmultiplier++;
+        }
+        return tertembak;
+    }
 
     public Command run() {
         //mencari adakah yg bisa melakukan bananabombs
@@ -177,35 +193,28 @@ public class Bot {
         }
 
         //mencari apakah ada yg bisa dishoot
-        for(MyWorm wormkita : player.worms) {
-            /*
-            boolean AdaKawan;
-            AdaKawan = false;
-            for(MyWorm cek : player.worms) {
-                if (cek.id != wormkita.id && getFirstWormInRange3(wormkita.weapon.range, wormkita, cek)) {
-                    AdaKawan = true;
-                }
-            }
-            */
-            Worm enemyWorm = getFirstWormInRange2(wormkita.weapon.range, wormkita);
-            if (enemyWorm != null) {
-                Direction direction = resolveDirection(wormkita.position, enemyWorm.position);
-                if (currentWorm.id != wormkita.id && player.remainingWormSelections > 0) {
-                    String perintah = String.format("shoot %s", direction.name());
-                    return new SelectCommand(wormkita.id, perintah);
-                } else {
-                    return new ShootCommand(direction);
-                }
-            }
-        }
-
-        /*
-        Worm enemyWorm = getFirstWormInRange();
+           // kita lihat apa bisa tanpa select dulu
+        MyWorm wormsebenar = getCurrentWorm(gameState);
+        Worm enemyWorm = getFirstWormInRange2(wormsebenar.weapon.range, wormsebenar);
         if (enemyWorm != null) {
-            Direction direction = resolveDirection(currentWorm.position, enemyWorm.position);
-            return new ShootCommand(direction);
+            Direction direction = resolveDirection(wormsebenar.position, enemyWorm.position);
+            if (!tertembakKawan(wormsebenar, direction, enemyWorm)) {
+                return new ShootCommand(direction);
+            }
         }
-        */
+          // kita lihat worm lain yang bisa menembak (pakai perintah select)
+        for(MyWorm wormkita : player.worms) {
+            if (wormkita != wormsebenar) {
+                enemyWorm = getFirstWormInRange2(wormkita.weapon.range, wormkita);
+                if (enemyWorm != null) {
+                    Direction direction = resolveDirection(wormsebenar.position, enemyWorm.position);
+                    if (!tertembakKawan(wormsebenar, direction, enemyWorm)) {
+                        String perintah = String.format("snowball %d %d", enemyWorm.position.x, enemyWorm.position.y);
+                        return new SelectCommand(wormkita.id, perintah);
+                    }
+                }
+            }
+        }
 
         //Cek apakah ada cell yang bisa dilakukan digging disekitar kita, return arah tempat digging/null jika tidak ada
         Position digPosition = getDiggingPosition();
