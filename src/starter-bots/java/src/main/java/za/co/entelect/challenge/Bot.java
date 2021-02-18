@@ -145,7 +145,7 @@ public class Bot {
                 tertembak = true;
             }
             directionmultiplier++;
-        } while (coordinateX != enemyWorm.position.x && coordinateY != enemyWorm.position.y && !tertembak && directionmultiplier>wormkita.weapon.range);
+        } while (coordinateX != enemyWorm.position.x && coordinateY != enemyWorm.position.y && !tertembak && directionmultiplier<=wormkita.weapon.range);
         if (directionmultiplier > wormkita.weapon.range){
             tertembak = true; // untuk cek out of bound
         }
