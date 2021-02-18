@@ -286,31 +286,12 @@ public class Bot {
         //Cek apakah ada cell yang bisa dilakukan digging disekitar kita, return arah tempat digging/null jika tidak ada
         Position digPosition = getDiggingPosition();
         if(digPosition != null){
-            debug();
             System.out.println(currentWorm.position.x +  " " + currentWorm.position.y);
             return new DigCommand(digPosition.x, digPosition.y);
         }
-        //move mendekati musuh
-        Direction moveDirection = getMovingDirection(currentWorm.position);
-        /*if(moveDirection != null) {
-            return new MoveCommand(currentWorm.position.x + moveDirection.x, currentWorm.position.y + moveDirection.y);
-        }*/
-        return new MoveCommand(currentWorm.position.x + moveDirection.x, currentWorm.position.y + moveDirection.y);
-
-        /*
-        List<Cell> surroundingBlocks = getSurroundingCells(currentWorm.position.x, currentWorm.position.y);
-        int cellIdx = random.nextInt(surroundingBlocks.size());
-
-        Cell block = surroundingBlocks.get(cellIdx);
-        if (block.type == CellType.AIR) {
-            return new MoveCommand(block.x, block.y);
-        } else if (block.type == CellType.DIRT) {
-            return new DigCommand(block.x, block.y);
-        }
-         */
-
-        //return new DoNothingCommand();
-
+        Position movePos = getMovingPosition();
+        if(movePos != null) return new MoveCommand(movePos.x, movePos.y);
+        return new DoNothingCommand();
     }
 
     private void debug(){
@@ -323,25 +304,67 @@ public class Bot {
     }
 
 
-    private Direction getMovingDirection(Position curr){
-        //hitung semua jarak euclidean dari titik sekarang ke semua musuh, cari minimum
-        int dist = 1000000000;
-        int currX = curr.x, currY = curr.y;
-        Position minEnemyPos = new Position();
-        minEnemyPos.x = 0;
-        minEnemyPos.y = 0;
-        for(Worm enemy : opponent.worms){
-            int enemyPosX = enemy.position.x;
-            int enemyPosY = enemy.position.y;
-            int distTmp = euclideanDistance(currX, currY, enemyPosX, enemyPosY);
-            if(distTmp < dist){
-                dist = distTmp;
-                minEnemyPos.x = enemyPosX;
-                minEnemyPos.y = enemyPosY;
+    private boolean isOccupied(int x, int y){
+        for(int i=0;i<gameState.myPlayer.worms.length;i++){
+            Worm tmp = gameState.myPlayer.worms[i];
+            if(tmp.position.x == x && tmp.position.y == y) return true;
+        }
+        for(int i=0;i<opponent.worms.length;i++){
+            Worm tmp = opponent.worms[i];
+            if(tmp.position.x == x && tmp.position.y == y) return true;
+        }
+        return false;
+    }
+
+    private boolean isAir(int x, int y){
+        return (gameState.map[y][x].type == CellType.AIR);
+    }
+
+
+    private Position getMovingPosition(){
+        int currX = currentWorm.position.x, currY = currentWorm.position.y;
+        int deltaPos[] = {1, 0, -1};
+
+        Position moveFinal = new Position();
+        moveFinal.x = 0;
+        moveFinal.y = 0;
+        int shortestDist = 1000000000;
+        for(int deltaX : deltaPos){
+            for(int deltaY : deltaPos){
+                //jika misalkan ada > 1 posisi untuk digging, ambil yang jarak
+                //euclideannya terhadap musuh minimum
+                int newX = currX+deltaX, newY = currY+deltaY;
+                if(isValidCoordinate(newX, newY)){
+                    if(isAir(newX, newY) && !isOccupied(newX, newY)){
+                        Position movPos = new Position();
+                        movPos.x = newX;
+                        movPos.y = newY;
+                        //iterasi posisi semua musuh
+                        //ambil posisi digging yang memiliki
+                        // rata-rata jarak terkecil antara musuh-player
+                        int dist = 1000000000;
+                        for(Worm enemy : opponent.worms){
+                            int enemyPosX = enemy.position.x;
+                            int enemyPosY = enemy.position.y;
+                            int distTmp = euclideanDistance(currX, currY, enemyPosX, enemyPosY);
+                            if(distTmp < dist){
+                                dist = distTmp;
+                            }
+                        }
+
+                        if(dist< shortestDist ){
+                            moveFinal.x = movPos.x;
+                            moveFinal.y = movPos.y;
+                            dist = shortestDist;
+                        }
+                    }
+                }
             }
         }
-        Direction move = resolveDirection(curr, minEnemyPos);
-        return move;
+        //System.out.println(isValidCoordinate(moveFinal.x, moveFinal.y) + " tes");
+        if(moveFinal.x == 0 && moveFinal.y == 0) return null;
+        return moveFinal;
+
     }
 
     private Position getEnemyMinimumPos(int currX, int currY){

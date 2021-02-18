@@ -52,3 +52,6 @@ fabric.properties
 *.iml
 
 target/*
+
+# match log
+../match-logs/
