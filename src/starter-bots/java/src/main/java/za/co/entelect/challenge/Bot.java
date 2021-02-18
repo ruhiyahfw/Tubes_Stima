@@ -273,8 +273,8 @@ public class Bot {
                 if (wormkita != currentWorm) {
                     enemyWorm = getFirstWormInRange2(wormkita.weapon.range, wormkita);
                     if (enemyWorm != null) {
-                        Direction direction = resolveDirection(currentWorm.position, enemyWorm.position);
-                        if (!tertembakPenghalang(currentWorm, direction, enemyWorm)) {
+                        Direction direction = resolveDirection(wormkita.position, enemyWorm.position);
+                        if (!tertembakPenghalang(wormkita, direction, enemyWorm)) {
                             String perintah = String.format("shoot %s", direction.name());
                             return new SelectCommand(wormkita.id, perintah);
                         }
