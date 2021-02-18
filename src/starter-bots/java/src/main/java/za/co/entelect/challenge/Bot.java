@@ -129,9 +129,9 @@ public class Bot {
     private boolean tertembakPenghalang(MyWorm wormkita, Direction direction, Worm enemyWorm){
         boolean tertembak = false;
         int directionmultiplier = 1;
-        int coordinateX = wormkita.position.x;
-        int coordinateY = wormkita.position.y;
-        while (coordinateX != enemyWorm.position.x && coordinateY != enemyWorm.position.y && wormkita.weapon.range >= directionmultiplier && !tertembak){
+        int coordinateX;
+        int coordinateY;
+        do{
             coordinateX = wormkita.position.x + (directionmultiplier*direction.x);
             coordinateY = wormkita.position.y + (directionmultiplier*direction.y);
             for (MyWorm cek: player.worms){
@@ -144,10 +144,10 @@ public class Bot {
             if (cell.type == CellType.DIRT || cell.type == CellType.DEEP_SPACE){
                 tertembak = true;
             }
-            if (directionmultiplier == wormkita.weapon.range && (coordinateX != enemyWorm.position.x || coordinateY != enemyWorm.position.y)){
-                tertembak = true;  // sebenarnya ini out of range anggap aja tertembak :D
-            }
             directionmultiplier++;
+        } while (coordinateX != enemyWorm.position.x && coordinateY != enemyWorm.position.y && !tertembak && directionmultiplier>wormkita.weapon.range);
+        if (directionmultiplier > wormkita.weapon.range){
+            tertembak = true; // untuk cek out of bound
         }
         return tertembak;
     }
