@@ -181,7 +181,7 @@ public class Bot {
             }
             directionmultiplier++;
         } while (coordinateX != enemyWorm.position.x && coordinateY != enemyWorm.position.y && !tertembak && directionmultiplier < wormkita.weapon.range);
-        if (directionmultiplier == wormkita.weapon.range && (coordinateX != enemyWorm.position.x || coordinateY != enemyWorm.position.y)) {
+        if (!tertembak && directionmultiplier == wormkita.weapon.range && !(coordinateX == enemyWorm.position.x && coordinateY == enemyWorm.position.y)) {
             tertembak = true; // untuk cek out of bound
         }
         return tertembak;
