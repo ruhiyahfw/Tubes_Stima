@@ -83,12 +83,15 @@ public class Bot {
             return new DigCommand(digPosition.x, digPosition.y);
         }
         //move mendekati musuh
+        Direction moveDirection = getMovingDirection(currentWorm.position);
+        return new MoveCommand(currentWorm.position.x + moveDirection.x, currentWorm.position.y + moveDirection.y);
+        /*
         Position movPos = getMovingPosition();
         if (movPos != null) {
             return new MoveCommand(movPos.x, movPos.y);
         }
 
-        return new DoNothingCommand();
+        return new DoNothingCommand(); */
 
     }
 
@@ -292,7 +295,27 @@ public class Bot {
         //System.out.println(isValidCoordinate(moveFinal.x, moveFinal.y) + " tes");
         if(moveFinal.x == 0 && moveFinal.y == 0) return null;
         return moveFinal;
+    }
 
+    private Direction getMovingDirection(Position curr){
+        //hitung semua jarak euclidean dari titik sekarang ke semua musuh, cari minimum
+        int dist = 1000000000;
+        int currX = curr.x, currY = curr.y;
+        Position minEnemyPos = new Position();
+        minEnemyPos.x = 0;
+        minEnemyPos.y = 0;
+        for(Worm enemy : opponent.worms){
+            int enemyPosX = enemy.position.x;
+            int enemyPosY = enemy.position.y;
+            int distTmp = euclideanDistance(currX, currY, enemyPosX, enemyPosY);
+            if(distTmp < dist){
+                dist = distTmp;
+                minEnemyPos.x = enemyPosX;
+                minEnemyPos.y = enemyPosY;
+            }
+        }
+        Direction move = resolveDirection(curr, minEnemyPos);
+        return move;
     }
 
     private Position getEnemyMinimumPos(int currX, int currY) {
